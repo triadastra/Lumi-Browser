@@ -369,6 +369,49 @@ struct MCPTool: Identifiable, Codable {
                 MCPToolParameter(name: "language", description: "Target language (e.g., 'Spanish', 'French', 'Japanese')", required: true)
             ]
         ),
+
+        // MARK: - Intelligent Page Interaction (HTML/DOM-based, no vision needed)
+        MCPTool(
+            id: "get_page_structure",
+            name: "Analyze Page Structure",
+            description: "Analyze the page's HTML structure and return all forms, input fields, buttons, and navigation elements as structured data. Use this BEFORE filling forms or clicking elements — it tells you exactly what fields exist and what to call them.",
+            category: .page,
+            icon: "list.bullet.rectangle",
+            parameters: []
+        ),
+        MCPTool(
+            id: "fill_form_fields",
+            name: "Fill Form Fields",
+            description: "Fill multiple form fields at once by matching field labels, names, or placeholders. Works with React, Vue, and standard HTML forms. Pass a 'fields' object mapping field labels/names to values.",
+            category: .page,
+            icon: "pencil.and.list.clipboard",
+            parameters: [
+                MCPToolParameter(name: "fields", type: "object", description: "Key-value pairs of field label/name → value to fill. E.g.: {\"email\": \"user@example.com\", \"password\": \"secret\"}", required: true),
+                MCPToolParameter(name: "form_index", type: "integer", description: "Which form on the page to target (0-based, default: 0)"),
+                MCPToolParameter(name: "submit", type: "boolean", description: "Whether to submit the form after filling all fields (default: false)")
+            ]
+        ),
+        MCPTool(
+            id: "submit_form",
+            name: "Submit Form",
+            description: "Submit a form on the current page by clicking its submit button. Use after fill_form_fields if you did not use submit=true.",
+            category: .page,
+            icon: "paperplane.fill",
+            parameters: [
+                MCPToolParameter(name: "form_index", type: "integer", description: "0-based index of the form to submit (default: 0)"),
+                MCPToolParameter(name: "selector", description: "CSS selector for the form (alternative to form_index)")
+            ]
+        ),
+        MCPTool(
+            id: "smart_click",
+            name: "Smart Click",
+            description: "Click a button, link, or interactive element by its visible text label. More reliable than CSS selectors — just pass the text you see on screen.",
+            category: .page,
+            icon: "cursorarrow.click",
+            parameters: [
+                MCPToolParameter(name: "text", description: "The visible text of the element to click (e.g., 'Sign In', 'Next', 'Submit')", required: true)
+            ]
+        ),
     ]
 }
 
