@@ -6,6 +6,7 @@ import WebKit
 @MainActor
 final class BrowserTab: ObservableObject, Identifiable {
     let id: UUID
+    let isDesktopTab: Bool          // true → renders DesktopTabView instead of WKWebView
     @Published var title: String
     @Published var url: URL?
     @Published var favicon: NSImage?
@@ -16,12 +17,14 @@ final class BrowserTab: ObservableObject, Identifiable {
 
     let webViewStore: WebViewStore
 
-    init(url: URL? = nil) {
+    /// Standard web tab
+    init(url: URL? = nil, isDesktopTab: Bool = false) {
         self.id = UUID()
-        self.title = "New Tab"
+        self.isDesktopTab = isDesktopTab
+        self.title = isDesktopTab ? "Desktop" : "New Tab"
         self.url = url
         self.webViewStore = WebViewStore()
-        if let url = url {
+        if let url = url, !isDesktopTab {
             webViewStore.load(url: url)
         }
     }

@@ -26,6 +26,18 @@ final class BrowserViewModel: ObservableObject {
         observeTab(tab)
     }
 
+    func addDesktopTab() {
+        // Allow only one desktop tab at a time — switch to it if it already exists
+        if let existing = tabs.first(where: { $0.isDesktopTab }) {
+            selectedTabID = existing.id
+            return
+        }
+        let tab = BrowserTab(isDesktopTab: true)
+        tabs.append(tab)
+        selectedTabID = tab.id
+        // No web observations needed for the desktop tab
+    }
+
     func addTab(urlString: String) {
         let tab = BrowserTab()
         tabs.append(tab)
@@ -72,6 +84,7 @@ final class BrowserViewModel: ObservableObject {
     // MARK: - Observation
 
     private func observeTab(_ tab: BrowserTab) {
+        guard !tab.isDesktopTab else { return }
         tab.webViewStore.$title
             .receive(on: RunLoop.main)
             .sink { [weak tab] title in

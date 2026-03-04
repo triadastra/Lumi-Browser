@@ -6,16 +6,22 @@ struct BrowserView: View {
     var body: some View {
         ZStack {
             if let tab = browserVM.selectedTab {
-                WebViewWrapper(webViewStore: tab.webViewStore)
-                    .id(tab.id)
+                if tab.isDesktopTab {
+                    // Desktop viewer/controller tab
+                    DesktopTabView()
+                        .id(tab.id)
+                } else {
+                    // Standard web tab
+                    WebViewWrapper(webViewStore: tab.webViewStore)
+                        .id(tab.id)
 
-                // Loading progress bar
-                if tab.isLoading {
-                    VStack {
-                        ProgressView(value: tab.estimatedProgress, total: 1.0)
-                            .progressViewStyle(LinearProgressViewStyle())
-                            .frame(height: 2)
-                        Spacer()
+                    if tab.isLoading {
+                        VStack {
+                            ProgressView(value: tab.estimatedProgress, total: 1.0)
+                                .progressViewStyle(LinearProgressViewStyle())
+                                .frame(height: 2)
+                            Spacer()
+                        }
                     }
                 }
             } else {

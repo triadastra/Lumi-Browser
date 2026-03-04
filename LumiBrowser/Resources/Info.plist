@@ -35,5 +35,9 @@
         <key>NSAllowsArbitraryLoads</key>
         <true/>
     </dict>
+    <key>NSScreenCaptureUsageDescription</key>
+    <string>Lumi Browser needs Screen Recording permission to show your live desktop in the Desktop tab.</string>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>Lumi Browser needs Accessibility permission to forward mouse clicks and keyboard input to your desktop from the Desktop tab.</string>
 </dict>
 </plist>

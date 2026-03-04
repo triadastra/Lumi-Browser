@@ -11,7 +11,7 @@ struct TabBarView: View {
                         .environmentObject(browserVM)
                 }
 
-                // New tab button
+                // New web tab button
                 Button {
                     browserVM.addTab()
                 } label: {
@@ -21,7 +21,31 @@ struct TabBarView: View {
                         .foregroundColor(.secondary)
                 }
                 .buttonStyle(.plain)
-                .padding(.horizontal, 4)
+                .padding(.horizontal, 2)
+                .help("New Tab")
+
+                // Desktop tab button (only shown when no desktop tab is open)
+                if !browserVM.tabs.contains(where: { $0.isDesktopTab }) {
+                    Button {
+                        browserVM.addDesktopTab()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "desktopcomputer")
+                                .font(.system(size: 11))
+                            Text("Desktop")
+                                .font(.system(size: 11))
+                        }
+                        .padding(.horizontal, 8)
+                        .frame(height: 28)
+                        .foregroundColor(.secondary)
+                        .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.secondary.opacity(0.2), lineWidth: 0.5))
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 4)
+                    .help("Open Desktop Viewer & Controller tab")
+                }
 
                 Spacer(minLength: 0)
             }
@@ -45,8 +69,17 @@ struct TabItem: View {
             browserVM.selectTab(tab)
         } label: {
             HStack(spacing: 6) {
-                // Favicon or loading spinner
-                if tab.isLoading {
+                // Icon: desktop monitor, loading spinner, favicon, or globe
+                if tab.isDesktopTab {
+                    Image(systemName: "desktopcomputer")
+                        .font(.system(size: 11))
+                        .foregroundStyle(
+                            isSelected
+                                ? LinearGradient(colors: [.purple, .blue], startPoint: .leading, endPoint: .trailing)
+                                : LinearGradient(colors: [.secondary, .secondary], startPoint: .leading, endPoint: .trailing)
+                        )
+                        .frame(width: 14, height: 14)
+                } else if tab.isLoading {
                     ProgressView()
                         .scaleEffect(0.5)
                         .frame(width: 14, height: 14)
@@ -85,19 +118,28 @@ struct TabItem: View {
                 }
             }
             .padding(.horizontal, 10)
-            .frame(width: 180, height: 28)
+            .frame(width: tab.isDesktopTab ? 120 : 180, height: 28)
             .background(
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(isSelected ? Color(nsColor: .selectedContentBackgroundColor).opacity(0.15) : Color.clear)
+                    .fill(
+                        isSelected
+                            ? (tab.isDesktopTab
+                                ? Color.purple.opacity(0.12)
+                                : Color(nsColor: .selectedContentBackgroundColor).opacity(0.15))
+                            : Color.clear
+                    )
                     .overlay(
                         RoundedRectangle(cornerRadius: 6)
-                            .stroke(isSelected ? Color.accentColor.opacity(0.3) : Color.clear, lineWidth: 0.5)
+                            .stroke(
+                                isSelected
+                                    ? (tab.isDesktopTab ? Color.purple.opacity(0.3) : Color.accentColor.opacity(0.3))
+                                    : Color.clear,
+                                lineWidth: 0.5
+                            )
                     )
             )
         }
         .buttonStyle(.plain)
-        .onHover { hovering in
-            isHovered = hovering
-        }
+        .onHover { isHovered = $0 }
     }
 }

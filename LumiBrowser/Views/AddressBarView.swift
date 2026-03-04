@@ -8,6 +8,17 @@ struct AddressBarView: View {
     var currentTab: BrowserTab? { browserVM.selectedTab }
 
     var body: some View {
+        // Show a different, simplified toolbar for the Desktop tab
+        if currentTab?.isDesktopTab == true {
+            DesktopTabToolbar()
+                .environmentObject(browserVM)
+        } else {
+            webToolbar
+        }
+    }
+
+    @ViewBuilder
+    private var webToolbar: some View {
         HStack(spacing: 6) {
             // Back button
             Button {
@@ -126,7 +137,7 @@ struct AddressBarView: View {
             }
             .buttonStyle(.borderless)
         }
-    }
+    }       // closes webToolbar
 
     private var securityIcon: String {
         guard let url = currentTab?.url else { return "globe" }
@@ -136,5 +147,62 @@ struct AddressBarView: View {
     private var securityColor: Color {
         guard let url = currentTab?.url else { return .secondary }
         return url.scheme == "https" ? .green : .secondary
+    }
+}
+
+// MARK: - Desktop Tab Toolbar
+struct DesktopTabToolbar: View {
+    @EnvironmentObject var browserVM: BrowserViewModel
+
+    var body: some View {
+        HStack(spacing: 8) {
+            // Disabled nav buttons (greyed out — desktop tab has no history)
+            Image(systemName: "chevron.left")
+                .frame(width: 28, height: 28)
+                .foregroundColor(.secondary.opacity(0.3))
+            Image(systemName: "chevron.right")
+                .frame(width: 28, height: 28)
+                .foregroundColor(.secondary.opacity(0.3))
+            Image(systemName: "arrow.clockwise")
+                .frame(width: 28, height: 28)
+                .foregroundColor(.secondary.opacity(0.3))
+
+            // "Address bar" showing desktop info
+            HStack(spacing: 8) {
+                Image(systemName: "desktopcomputer")
+                    .font(.system(size: 12))
+                    .foregroundStyle(
+                        LinearGradient(colors: [.purple, .blue], startPoint: .leading, endPoint: .trailing)
+                    )
+                Text("Desktop — Screen Viewer & Controller")
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
+                Spacer()
+                Text("Click the screen to take control  ·  ESC to release")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary.opacity(0.6))
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color(nsColor: .controlBackgroundColor))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.purple.opacity(0.2), lineWidth: 1)
+                    )
+            )
+
+            // AI assistant toggle (still available)
+            Button {
+                browserVM.isAgentPanelVisible.toggle()
+            } label: {
+                Image(systemName: "sparkles")
+                    .frame(width: 28, height: 28)
+                    .foregroundColor(browserVM.isAgentPanelVisible ? .accentColor : .secondary)
+            }
+            .buttonStyle(.borderless)
+            .help("Toggle AI Assistant (⌘\\)")
+        }
     }
 }
