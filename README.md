@@ -52,6 +52,31 @@ Lumi's built-in AI agent can browse the web alongside you and automate tasks:
 
 ---
 
+## 🛠️ Browser Engine — WebKit (not Chrome)
+
+Lumi Browser uses **WebKit** — Apple's open-source browser engine — via the native macOS [`WKWebView`](https://developer.apple.com/documentation/webkit/wkwebview) API. It is **not** built on Chrome or Chromium.
+
+| | Lumi Browser | Chrome / Arc / Brave |
+|---|---|---|
+| **Rendering engine** | WebKit (same as Safari) | Blink (Chromium fork of WebKit) |
+| **Runtime** | Native Swift + SwiftUI | Electron / Chromium shell |
+| **macOS integration** | Full — uses native `NSView`, Keychain, sandboxing | Limited |
+| **Binary size** | ~5 MB (no bundled browser runtime) | 200 MB+ (bundles entire Chromium) |
+| **Memory footprint** | Minimal — WKWebView is shared with OS | High — separate Chromium process per tab |
+| **Web compatibility** | Excellent (WebKit powers all iOS browsers) | Excellent (Blink is WebKit-derived) |
+
+### Why WebKit and not Chromium?
+
+- **Native macOS citizen**: `WKWebView` is a first-class macOS framework. The app links directly against the WebKit that ships with the OS, so there is nothing extra to download or bundle.
+- **No Electron overhead**: Chromium-based desktop apps ship a complete copy of Chrome inside them (100–300 MB). Lumi's `.app` bundle is a few megabytes.
+- **Tight OS integration**: Native sandboxing, Keychain, PDF generation, system find-panel, and screenshot APIs all work out of the box.
+- **Privacy**: WebKit is maintained by Apple and integrates Intelligent Tracking Prevention (ITP) — the same engine behind Safari's anti-tracking features.
+- **Swift-first**: `WKWebView` is designed to be embedded in Swift/Objective-C apps, making the AI and MCP tool integrations straightforward with `async/await`.
+
+> **TL;DR** — The base browser is **WebKit**, the same engine Safari uses, accessed through Apple's `WKWebView` API. There is no Chrome or Chromium involved.
+
+---
+
 ## 📦 Requirements
 
 - **macOS 13.0 (Ventura)** or later
