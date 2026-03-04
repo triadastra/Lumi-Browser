@@ -14,7 +14,7 @@ struct SettingsView: View {
                 .environmentObject(settings)
 
             AgentSettingsTab()
-                .tabItem { Label("Agent", systemImage: "sparkles") }
+                .tabItem { Label("AI Assistant", systemImage: "sparkles") }
                 .environmentObject(settings)
 
             PrivacySettingsTab()
@@ -43,7 +43,7 @@ struct GeneralSettingsTab: View {
 
             Section("Appearance") {
                 Picker("Color Scheme", selection: $settings.colorScheme) {
-                    Text("System").tag(AppColorScheme.system)
+                    Text("System Default").tag(AppColorScheme.system)
                     Text("Light").tag(AppColorScheme.light)
                     Text("Dark").tag(AppColorScheme.dark)
                 }
@@ -58,6 +58,9 @@ struct GeneralSettingsTab: View {
                         Text(engine.displayName).tag(engine)
                     }
                 }
+                Text("Used when you type a search term in the address bar or ask the AI to search.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
         }
         .formStyle(.grouped)
@@ -70,42 +73,46 @@ struct APIKeysSettingsTab: View {
     @State private var showOpenAIKey = false
     @State private var showAnthropicKey = false
     @State private var showGeminiKey = false
-    @State private var showOllamaURL = false
     @State private var validationMessage: String?
     @State private var isValidating = false
 
     var body: some View {
         Form {
+            // Setup status banner
             Section {
-                HStack(spacing: 6) {
-                    Image(systemName: "info.circle")
-                        .foregroundColor(.blue)
-                    Text("Your API keys are stored securely in the system Keychain and never shared.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.vertical, 4)
-            }
-
-            Section("OpenAI") {
-                LabeledContent("API Key") {
-                    HStack {
-                        if showOpenAIKey {
-                            TextField("sk-…", text: $settings.openAIKey)
-                                .textFieldStyle(.roundedBorder)
-                        } else {
-                            SecureField("sk-…", text: $settings.openAIKey)
-                                .textFieldStyle(.roundedBorder)
+                if settings.hasAnyAPIKey {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("AI Assistant is ready")
+                                .font(.subheadline.bold())
+                                .foregroundColor(.green)
+                            Text("Open the AI panel with the ✦ button in the toolbar, or press ⌘\\.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
-                        Button(showOpenAIKey ? "Hide" : "Show") { showOpenAIKey.toggle() }
-                            .buttonStyle(.borderless)
                     }
+                    .padding(.vertical, 4)
+                } else {
+                    HStack(alignment: .top, spacing: 8) {
+                        Image(systemName: "key.fill")
+                            .foregroundColor(.orange)
+                            .padding(.top, 2)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Add an API key to use the AI Assistant")
+                                .font(.subheadline.bold())
+                                .foregroundColor(.orange)
+                            Text("Choose any provider below. Anthropic Claude is recommended. Keys are stored securely in your Mac's Keychain and never leave your device.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
                 }
-                Link("Get an OpenAI API key →", destination: URL(string: "https://platform.openai.com/api-keys")!)
-                    .font(.caption)
             }
 
-            Section("Anthropic") {
+            Section("Anthropic (Claude) — Recommended") {
                 LabeledContent("API Key") {
                     HStack {
                         if showAnthropicKey {
@@ -119,7 +126,35 @@ struct APIKeysSettingsTab: View {
                             .buttonStyle(.borderless)
                     }
                 }
-                Link("Get an Anthropic API key →", destination: URL(string: "https://console.anthropic.com/")!)
+                if !settings.anthropicKey.isEmpty {
+                    Label("Key saved", systemImage: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundColor(.green)
+                }
+                Link("Get a free Anthropic API key →", destination: URL(string: "https://console.anthropic.com/")!)
+                    .font(.caption)
+            }
+
+            Section("OpenAI (GPT)") {
+                LabeledContent("API Key") {
+                    HStack {
+                        if showOpenAIKey {
+                            TextField("sk-…", text: $settings.openAIKey)
+                                .textFieldStyle(.roundedBorder)
+                        } else {
+                            SecureField("sk-…", text: $settings.openAIKey)
+                                .textFieldStyle(.roundedBorder)
+                        }
+                        Button(showOpenAIKey ? "Hide" : "Show") { showOpenAIKey.toggle() }
+                            .buttonStyle(.borderless)
+                    }
+                }
+                if !settings.openAIKey.isEmpty {
+                    Label("Key saved", systemImage: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundColor(.green)
+                }
+                Link("Get an OpenAI API key →", destination: URL(string: "https://platform.openai.com/api-keys")!)
                     .font(.caption)
             }
 
@@ -137,23 +172,30 @@ struct APIKeysSettingsTab: View {
                             .buttonStyle(.borderless)
                     }
                 }
+                if !settings.geminiKey.isEmpty {
+                    Label("Key saved", systemImage: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundColor(.green)
+                }
                 Link("Get a Gemini API key →", destination: URL(string: "https://aistudio.google.com/apikey")!)
                     .font(.caption)
             }
 
-            Section("Ollama (Local)") {
+            Section("Ollama — Free Local AI (No Key Needed)") {
                 LabeledContent("Server URL") {
                     TextField("http://localhost:11434", text: $settings.ollamaBaseURL)
                         .textFieldStyle(.roundedBorder)
                 }
-                Text("Run Ollama locally to use models like llama3, mistral, codellama without any API key.")
+                Text("Install Ollama to run AI models locally — completely free, no API key needed, and your data stays on your device.")
                     .font(.caption)
                     .foregroundColor(.secondary)
+                Link("Download Ollama →", destination: URL(string: "https://ollama.ai")!)
+                    .font(.caption)
             }
 
             Section {
                 HStack {
-                    Button("Validate Current Key") {
+                    Button("Test Connection") {
                         isValidating = true
                         validationMessage = nil
                         Task {
@@ -166,6 +208,9 @@ struct APIKeysSettingsTab: View {
 
                     if isValidating {
                         ProgressView().scaleEffect(0.8)
+                        Text("Testing…")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
 
                     if let msg = validationMessage {
@@ -180,52 +225,71 @@ struct APIKeysSettingsTab: View {
     }
 }
 
-// MARK: - Agent Settings Tab
+// MARK: - AI Assistant Settings Tab
 struct AgentSettingsTab: View {
     @EnvironmentObject var settings: AppSettings
 
     var body: some View {
         Form {
-            Section("Default Model") {
-                Picker("AI Model", selection: $settings.selectedModel) {
+            Section("AI Model") {
+                Picker("Model", selection: $settings.selectedModel) {
                     ForEach(AIModel.allCases) { model in
                         Text(model.displayName).tag(model)
                     }
                 }
+                Text("\"Claude Sonnet 4.6\" is recommended for most tasks — fast, smart, and capable. Haiku models are quicker and cheaper. Opus is the most powerful. Local Ollama models are free.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
 
+            Section("Response Style") {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Context Window")
-                    Slider(value: $settings.maxContextTokens, in: 1000...200000, step: 1000) {
-                        Text("Context")
+                    HStack {
+                        Text("Creativity")
+                        Spacer()
+                        Text(temperatureLabel)
+                            .font(.caption)
+                            .foregroundColor(.accentColor)
                     }
-                    Text("\(Int(settings.maxContextTokens)) tokens")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Temperature")
                     Slider(value: $settings.temperature, in: 0...2, step: 0.1) {
                         Text("Temperature")
                     }
-                    Text(String(format: "%.1f", settings.temperature))
-                        .font(.caption)
+                    Text("Low: precise, factual answers  ·  High: more creative, exploratory")
+                        .font(.caption2)
                         .foregroundColor(.secondary)
                 }
             }
 
-            Section("Behavior") {
-                Toggle("Include page content in context", isOn: $settings.includePageContextByDefault)
-                Toggle("Auto-execute safe MCP tools", isOn: $settings.autoExecuteSafeTools)
-                Toggle("Show tool call details", isOn: $settings.showToolCallDetails)
-                Toggle("Stream responses", isOn: $settings.streamResponses)
+            Section("Context") {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("Max Conversation Length")
+                        Spacer()
+                        Text("\(Int(settings.maxContextTokens).formatted()) tokens")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Slider(value: $settings.maxContextTokens, in: 1000...200000, step: 1000)
+                    Text("Higher values allow longer back-and-forth but may increase API costs.")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                Toggle("Always include current page text in messages", isOn: $settings.includePageContextByDefault)
             }
 
-            Section("System Prompt") {
+            Section("Behavior") {
+                Toggle("Show AI actions step-by-step", isOn: $settings.showToolCallDetails)
+                Toggle("Stream responses as they are typed", isOn: $settings.streamResponses)
+            }
+
+            Section("Advanced: System Prompt") {
                 TextEditor(text: $settings.systemPrompt)
                     .font(.system(size: 12, design: .monospaced))
                     .frame(height: 100)
                     .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.secondary.opacity(0.2)))
+                Text("This hidden instruction tells the AI how to behave. Leave as default unless you have a specific reason to change it.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                 Button("Reset to Default") {
                     settings.systemPrompt = AppSettings.defaultSystemPrompt
                 }
@@ -235,6 +299,15 @@ struct AgentSettingsTab: View {
         }
         .formStyle(.grouped)
     }
+
+    private var temperatureLabel: String {
+        switch settings.temperature {
+        case 0..<0.4: return "Precise"
+        case 0.4..<0.9: return "Balanced"
+        case 0.9..<1.4: return "Creative"
+        default: return "Very Creative"
+        }
+    }
 }
 
 // MARK: - Privacy Settings Tab
@@ -243,14 +316,15 @@ struct PrivacySettingsTab: View {
 
     var body: some View {
         Form {
-            Section("Data & Privacy") {
+            Section("Web Protection") {
                 Toggle("Block third-party cookies", isOn: $settings.blockThirdPartyCookies)
-                Toggle("Enable JavaScript", isOn: $settings.enableJavaScript)
                 Toggle("Block pop-ups", isOn: $settings.blockPopups)
-                Toggle("Enable ad blocking (basic)", isOn: $settings.enableAdBlocking)
+                Toggle("Enable basic ad blocking", isOn: $settings.enableAdBlocking)
+                Toggle("Enable JavaScript", isOn: $settings.enableJavaScript)
+                    .help("Disabling JavaScript will break most modern websites.")
             }
 
-            Section("History") {
+            Section("Browsing History") {
                 Toggle("Save browsing history", isOn: $settings.saveBrowsingHistory)
                 Picker("Clear history after", selection: $settings.historyRetentionDays) {
                     Text("1 day").tag(1)
@@ -265,8 +339,8 @@ struct PrivacySettingsTab: View {
             }
 
             Section("AI Privacy") {
-                Toggle("Send page content to AI", isOn: $settings.allowPageContentToAI)
-                Text("When enabled, the AI can access the content of pages you are viewing to answer questions. Content is only sent when you explicitly ask about the page.")
+                Toggle("Allow AI to read page content", isOn: $settings.allowPageContentToAI)
+                Text("When enabled, the AI can read the text on pages you visit to answer questions about them. Content is only sent when you explicitly ask about the page or toggle page context in the chat.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

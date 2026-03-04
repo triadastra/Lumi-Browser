@@ -3,7 +3,7 @@ import SwiftUI
 
 // MARK: - MCP Tool Category
 enum MCPToolCategory: String, CaseIterable, Identifiable {
-    case browser = "Browser"
+    case browser = "Navigation"
     case page = "Page"
     case search = "Search"
     case system = "System"

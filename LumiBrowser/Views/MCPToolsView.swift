@@ -23,12 +23,17 @@ struct MCPToolsView: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                Image(systemName: "wrench.and.screwdriver.fill")
+                Image(systemName: "sparkles.rectangle.stack.fill")
                     .foregroundStyle(LinearGradient(colors: [.purple, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
-                Text("MCP Tools")
-                    .font(.headline)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("AI Capabilities")
+                        .font(.headline)
+                    Text("Actions the AI can take on your behalf")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
                 Spacer()
-                Text("\(MCPTool.allTools.count) tools")
+                Text("\(MCPTool.allTools.count) actions")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

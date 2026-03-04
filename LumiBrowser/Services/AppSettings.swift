@@ -29,6 +29,10 @@ final class AppSettings: ObservableObject {
         URL(string: homepageURLString) ?? URL(string: "https://www.google.com")!
     }
 
+    var hasAnyAPIKey: Bool {
+        !openAIKey.isEmpty || !anthropicKey.isEmpty || !geminiKey.isEmpty || selectedModel.provider == .ollama
+    }
+
     // MARK: - API Keys (stored in Keychain)
     @Published var openAIKey: String = "" {
         didSet { KeychainHelper.save(key: "lumi.openai.key", value: openAIKey) }
